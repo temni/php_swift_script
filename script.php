@@ -1,3 +1,4 @@
 <?php
-phpinfo();
+require 'config.php';
+echo $host_;
 ?>
