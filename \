@@ -1,0 +1,20 @@
+<?php
+
+require 'config.php';
+/*
+$host_
+$user
+$key
+*/
+
+
+require 'includes/cloudfiles.php';
+$auth = new CF_Authentication($user, $key.'e', '', $host_);
+try {
+$auth->authenticate();
+}
+catch(Exception $e)
+{
+ die('Auth error! Check username and password in your config file');
+}
+?>
