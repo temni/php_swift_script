@@ -8,3 +8,14 @@ swift:
 	sudo add-apt-repository ppa:swift-core/release
 	sudo apt-get update
 	sudo apt-get -y install python-software-properties swift
+
+You have to use this script only with params: 
+	--dir=local_dir_to_upload
+	--user=username
+	--key=user_key
+	--host=remote_cloud_server
+	--rm-files=[false/true] rm local files after upload
+	--container=remote_container_name
+	-s      list remote conrainers
+	-o      list objects in remote container (USE ONLY WITH --container param)
+

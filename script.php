@@ -5,28 +5,67 @@ require 'config.php';
 require 'includes/cloudfiles.php';
 require 'includes/parser.php';
 
+	function createStruct($folder, $cont, $fname)
+	{
+		$obj = $cont->create_object($fname);
+		$obj->content_type = 'application/directory';
+		$obj->write(' ');
+		echo "Uploading $fname objects...\n";
+		
+		$list_ = scandir($folder);	
+		unset($list_[0],$list_[1]);
+		foreach($list_ as $val)
+		{
+			if (filetype($folder.'/'.$val)=='dir')
+			{
+				createStruct($folder.'/'.$val,$cont,$fname.'/'.$val);
+			}
+			else
+			{
+				echo "Uploading $fname/$val file...\n";
+				$obj = $cont->create_object($fname.'/'.$val);
+				$obj->load_from_filename($folder.'/'.$val);
+			}
+		}
+	}
+
+	 function rrmdir($dir) {
+	   if (is_dir($dir)) {
+	     $objects = scandir($dir);
+	     foreach ($objects as $object) {
+	       if ($object != "." && $object != "..") {
+	         if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object); else unlink($dir."/".$object);
+	       }
+	     }
+	     reset($objects);
+	     rmdir($dir);
+	   }
+	 }
+
 	$argvParser = ArgvParser::getInstance();
 	$argc = (count($_SERVER['argv']));
-	if ($argc == 0) 
+	if ($argc == 1) 
 		{
-		echo "Ошибка! Не задано ни одного аргумента. Список возможных аргументов: \n";
-		echo "\t--dir=папка_для_загрузки\n";
-		echo "\t--user=имя_пользователя\n";
-		echo "\t--key=ключ\n";
-		echo "\t--host=удаленный сервер\n";
-		echo "\t--rm-files удалять файлы после загрузки\n";
-		echo "\t--container=имя_удаленного_контейнера\n";
-		echo "\t-s      только показать список контейнеров\n";
+		echo "Sorry, you have to use this script only with params: \n";
+		echo "\t--dir=local_dir_to_upload\n";
+		echo "\t--user=username\n";
+		echo "\t--key=user_key\n";
+		echo "\t--host=remote_cloud_server\n";
+		echo "\t--rm-files=[false/true] rm local files after upload\n";
+		echo "\t--container=remote_container_name\n";
+		echo "\t-s      list remote conrainers\n";
+		echo "\t-o      list objects in remote container (USE ONLY WITH --container param)\n";
 		die();
 		}
-	if ((!$argvParser->isExistOption('dir'))&&(!$argvParser->isExistFlag('s'))) die("Ошибка! Не введён обязательный параметр dir\n");
+	if (!$argvParser->isExistOption('dir')&&!$argvParser->isExistFlag('o')
+		&&!$argvParser->isExistFlag('s')) die("Error! argument --dir was not received\n");
 	
 	if ($argvParser->isExistOption('user')) $user = $argvParser->getOption('user');
 	if ($argvParser->isExistOption('key'))  $key = $argvParser->getOption('key');
 	if ($argvParser->isExistOption('host')) $host_ = $argvParser->getOption('host');
 
 	$create_new = !$argvParser->isExistOption('container');
-	$rm = !$argvParser->isExistOption('rm-files');
+	$rm = $argvParser->isExistOption('rm-files');
 	
 	$auth = new CF_Authentication($user, $key, '', $host_);
 	try 
@@ -50,9 +89,15 @@ require 'includes/parser.php';
 			echo $i++." :'$val->name' => $val->object_count objects\n";
 		die();
 	}
-	
-	$dir = $argvParser->getOption('dir');
-	$container_name = $argvParser->isExistOption('container')?$argvParser->getOption('container'):$dir;
+	$dir='';	
+	if (!$argvParser->isExistFlag('o')) $dir = $argvParser->getOption('dir');
+	else
+	{
+	if (strrpos($dir,'/')==(strlen($dir)-1)) $dir = substr($dir,0,strlen($dir)-1);
+	if (!(strpos($dir,'/')===false)) $fname = substr($dir,strrpos($dir,'/')+1);
+		else $fname = $dir;
+	}
+	$container_name = $argvParser->isExistOption('container')?$argvParser->getOption('container'):$fname;
 
 	if (!$create_new) 
 		{
@@ -62,7 +107,7 @@ require 'includes/parser.php';
 			}
 			catch(Exception $e)
 			{
-				die("Указанный контейнер $container_name не существует\n");
+				die("Container $container_name doesn't exist\n");
 			}
 		}
 		else 
@@ -73,9 +118,25 @@ require 'includes/parser.php';
 			}
 			catch(Exception $e)
 			{
-				die("Не удалось создать указанный контейнер $container_name\n");
+				die("Couldn't find $container_name on remote host\n");
 			}
 		}
-	print_r($container->get_objects());
-	$list_ = scandir($dir);	
-	print_r($list_);	
+
+	if ($argvParser->isExistFlag('o')) 
+	{
+		$conts = $container->get_objects();
+		echo "Container $container->name consists ".count($conts)."\n";
+		$i = 1;
+		foreach($conts as $val)
+			echo $i++." :'$val->name' => $val->content_type\n";
+		die();
+	}
+
+	createStruct($dir, $container, $fname);
+	echo "All data was uploaded\n";
+	if ($rm) 
+	{
+		rrmdir($dir);
+		echo "Local data was removed\n";
+	}
+	
