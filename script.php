@@ -4,6 +4,7 @@ require 'config.php';
 /* $host_; $user; $key*/
 require 'includes/cloudfiles.php';
 require 'includes/parser.php';
+echo "\n\n\n\n\n\n";
 
 	function createStruct($folder, $cont, $fname)
 	{
@@ -89,29 +90,14 @@ require 'includes/parser.php';
 			echo $i++." :'$val->name' => $val->object_count objects\n";
 		die();
 	}
-	$dir='';	
+
+	$dir=''; $fname = '';
 	if (!$argvParser->isExistFlag('o')) $dir = $argvParser->getOption('dir');
-	else
-	{
 	if (strrpos($dir,'/')==(strlen($dir)-1)) $dir = substr($dir,0,strlen($dir)-1);
 	if (!(strpos($dir,'/')===false)) $fname = substr($dir,strrpos($dir,'/')+1);
 		else $fname = $dir;
-	}
 	$container_name = $argvParser->isExistOption('container')?$argvParser->getOption('container'):$fname;
 
-	if (!$create_new) 
-		{
-			try
-			{
-				$container = $conn->get_container($container_name);
-			}
-			catch(Exception $e)
-			{
-				die("Container $container_name doesn't exist\n");
-			}
-		}
-		else 
-		{
 			try
 			{
 				$container = $conn->create_container($container_name);
@@ -120,7 +106,6 @@ require 'includes/parser.php';
 			{
 				die("Couldn't find $container_name on remote host\n");
 			}
-		}
 
 	if ($argvParser->isExistFlag('o')) 
 	{
