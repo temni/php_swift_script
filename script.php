@@ -26,14 +26,14 @@ require 'includes/parser.php';
 		{
 			if (filetype($folder.'/'.$val)=='dir')
 			{
-				createStruct($folder.'/'.$val,$cont,$fname.'/'.$val, $skip);
+				createStruct($folder.'/'.$val,$cont,(!$f)?$fname.'/'.$val:$val, $skip);
 			}
 			else
 			{
 				echo "Uploading $fname/$val file...\n";
 				if (!(($skip) && (isConsistZeros($val))))
 				{
-				$obj = $cont->create_object($fname.'/'.$val);
+				$obj = $cont->create_object((!$f)?$fname.'/'.$val:$val);
 				$obj->load_from_filename($folder.'/'.$val);
 				}
 				else echo "File $fname/$val skipped!\n";
