@@ -10,11 +10,14 @@ require 'includes/parser.php';
 		return (!(strrpos($str,'00000000')===false));
 	}
 	
-	function createStruct($folder, $cont, $fname, $skip)
+	function createStruct($folder, $cont, $fname, $skip, $f=false)
 	{
+		if (!$f)
+		{
 		$obj = $cont->create_object($fname);
 		$obj->content_type = 'application/directory';
 		$obj->write(' ');
+		}
 		echo "Uploading $fname objects...\n";
 		
 		$list_ = scandir($folder);	
@@ -127,7 +130,7 @@ require 'includes/parser.php';
 	}
 	$skip = $argvParser->isExistOption('skip-zeros');
 	var_dump($skip);
-	createStruct($dir, $container, $fname, $skip);
+	createStruct($dir, $container, $fname, $skip, true);
 	echo "All data was uploaded\n";
 	if ($rm) 
 	{
