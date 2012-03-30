@@ -4,9 +4,13 @@ require 'config.php';
 /* $host_; $user; $key*/
 require 'includes/cloudfiles.php';
 require 'includes/parser.php';
-echo "\n\n\n\n\n\n";
-
-	function createStruct($folder, $cont, $fname)
+	
+	function isConsistZeros($str)
+	{
+		return (!(strrpos($str,'00000000')===false));
+	}
+	
+	function createStruct($folder, $cont, $fname, $skip)
 	{
 		$obj = $cont->create_object($fname);
 		$obj->content_type = 'application/directory';
@@ -19,23 +23,27 @@ echo "\n\n\n\n\n\n";
 		{
 			if (filetype($folder.'/'.$val)=='dir')
 			{
-				createStruct($folder.'/'.$val,$cont,$fname.'/'.$val);
+				createStruct($folder.'/'.$val,$cont,$fname.'/'.$val, $skip);
 			}
 			else
 			{
 				echo "Uploading $fname/$val file...\n";
+				if (!(($skip) && (isConsistZeros($val))))
+				{
 				$obj = $cont->create_object($fname.'/'.$val);
 				$obj->load_from_filename($folder.'/'.$val);
+				}
+				else echo "File $fname/$val skipped!\n";
 			}
 		}
 	}
 
-	 function rrmdir($dir) {
+	 function rrmdir($dir, $skip) {
 	   if (is_dir($dir)) {
 	     $objects = scandir($dir);
 	     foreach ($objects as $object) {
 	       if ($object != "." && $object != "..") {
-	         if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object); else unlink($dir."/".$object);
+	         if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object); else { if (!(($skip) && (isConsistZeros($val)))) unlink($dir."/".$object);}
 	       }
 	     }
 	     reset($objects);
@@ -53,6 +61,7 @@ echo "\n\n\n\n\n\n";
 		echo "\t--key=user_key\n";
 		echo "\t--host=remote_cloud_server\n";
 		echo "\t--rm-files=[false/true] rm local files after upload\n";
+		echo "\t--skip-zeros=[false/true] do not upload files with names terminated 8 zeros\n";
 		echo "\t--container=remote_container_name\n";
 		echo "\t-s      list remote conrainers\n";
 		echo "\t-o      list objects in remote container (USE ONLY WITH --container param)\n";
@@ -116,12 +125,13 @@ echo "\n\n\n\n\n\n";
 			echo $i++." :'$val->name' => $val->content_type\n";
 		die();
 	}
-
-	createStruct($dir, $container, $fname);
+	$skip = $argvParser->isExistOption('skip-zeros');
+	var_dump($skip);
+	createStruct($dir, $container, $fname, $skip);
 	echo "All data was uploaded\n";
 	if ($rm) 
 	{
-		rrmdir($dir);
+		rrmdir($dir,$skip);
 		echo "Local data was removed\n";
 	}
 	
