@@ -129,9 +129,9 @@ require 'includes/parser.php';
 		die();
 	}
 	$skip = $argvParser->isExistOption('skip-zeros');
-	var_dump($skip);
 	createStruct($dir, $container, $fname, $skip, true);
 	echo "All data was uploaded\n";
+	$skip = $argvParser->isExistOption('skip-zeros');
 	if ($rm) 
 	{
 		rrmdir($dir,$skip);
