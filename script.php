@@ -8,7 +8,7 @@ require 'includes/parser.php';
 	
 	function isConsistZeros($str)
 	{
-		return (!(strrpos($str,'00000000')===false));
+		return (preg_match('/1\/[0-9]{9}_[0]{8}/', $str)===1);
 	}
 	
 	function createStruct($folder, $cont, $fname, $skip, $f=false)
