@@ -132,10 +132,10 @@ require 'includes/parser.php';
 	$skip = $argvParser->isExistOption('skip-zeros');
 	createStruct($dir, $container, $fname, $skip, true);
 	echo "All data was uploaded\n";
-/*	if ($rm) 
+	if ($rm) 
 	{
 	$skip = $argvParser->isExistOption('skip-zeros');
 		rrmdir($dir,$skip, true);
 		echo "Local data was removed\n";
 	}
-*/	
+	
