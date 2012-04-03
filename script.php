@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+error_reporting(0);
 require 'config.php';
 /* $host_; $user; $key*/
 require 'includes/cloudfiles.php';
@@ -41,16 +42,16 @@ require 'includes/parser.php';
 		}
 	}
 
-	 function rrmdir($dir, $skip) {
+	 function rrmdir($dir, $skip, $first=false) {
 	   if (is_dir($dir)) {
 	     $objects = scandir($dir);
 	     foreach ($objects as $object) {
 	       if ($object != "." && $object != "..") {
-	         if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object,$skip); else { if (!(($skip) && (isConsistZeros($val)))) unlink($dir."/".$object);}
+	         if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object,$skip); else { if (!(($skip) && (isConsistZeros($object)))) unlink($dir."/".$object);}
 	       }
 	     }
 	     reset($objects);
-	     rmdir($dir);
+	     if (!$first) rmdir($dir);
 	   }
 	 }
 
@@ -134,7 +135,7 @@ require 'includes/parser.php';
 	if ($rm) 
 	{
 	$skip = $argvParser->isExistOption('skip-zeros');
-		rrmdir($dir,$skip);
+		rrmdir($dir,$skip, true);
 		echo "Local data was removed\n";
 	}
 	
