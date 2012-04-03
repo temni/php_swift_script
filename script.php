@@ -47,7 +47,7 @@ require 'includes/parser.php';
 	     $objects = scandir($dir);
 	     foreach ($objects as $object) {
 	       if ($object != "." && $object != "..") {
-	         if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object,$skip); else { if (!(($skip) && (isConsistZeros($object)))) unlink($dir."/".$object);}
+	         if (filetype($dir."/".$object) == "dir") rrmdir($dir."/".$object,$skip); else { if ((!(($skip) && (isConsistZeros($object))))&&($object!="archive.sta")) unlink($dir."/".$object);}
 	       }
 	     }
 	     reset($objects);
@@ -132,10 +132,10 @@ require 'includes/parser.php';
 	$skip = $argvParser->isExistOption('skip-zeros');
 	createStruct($dir, $container, $fname, $skip, true);
 	echo "All data was uploaded\n";
-	if ($rm) 
+/*	if ($rm) 
 	{
 	$skip = $argvParser->isExistOption('skip-zeros');
 		rrmdir($dir,$skip, true);
 		echo "Local data was removed\n";
 	}
-	
+*/	
